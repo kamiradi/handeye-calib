@@ -1,0 +1,4 @@
+<launch>
+<node pkg="tf2_ros" type="static_transform_publisher" name="realsense_panda_transform" args="0.23345827, 0.00269514, -0.19080674, 0.99782219232, -0.0159272984088, -0.051168353569401, 0.038457681 panda_link7 camera_color_optical_frame"/>
+<!--<node pkg="tf2_ros" type="static_transform_publisher" name="realsense_panda_transform" args="-0.2125062, 0.00803532, 0.21376105, 0.99782219232, -0.0159272984088, -0.051168353569401, 0.038457681 camera_color_optical_frame panda_link7"/>-->
+</launch>
