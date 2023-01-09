@@ -14,13 +14,14 @@ import tf
 import tf2_ros
 import pdb
 from handeye_calib.msg import calib
+import sys
 
 class Trajectory(object):
 
     def __init__(self):
         rospy.init_node('calibration_trajectory', anonymous=True)
         # rospy.wait_for_message('move_group/status', GoalStatusArray)
-        self.commander = MoveGroupCommander('panda_arm')
+        self.commander = MoveGroupCommander('panda_realsense_arm')
         self.commander.set_max_velocity_scaling_factor(0.05)
         self.commander.set_max_acceleration_scaling_factor(0.05) 
         self.commander.set_planning_time(10) 
@@ -28,7 +29,7 @@ class Trajectory(object):
         self.buf = tf2_ros.Buffer() 
         self.tf_listener = tf2_ros.TransformListener(self.buf) 
         self.calibPublisher = rospy.Publisher('calib_data', calib, queue_size=20) 
-        self.solvePublisher = rospy.Publisher('shall_solve', Bool)
+        self.solvePublisher = rospy.Publisher('shall_solve', Bool, queue_size=1)
         # self.gripperPublisher = rospy.Publisher('base_gripper', calib, queue_size=20)
         r = rospy.Rate(10)
         rospy.sleep(5)
@@ -70,32 +71,37 @@ class Trajectory(object):
         self.commander.go(wait=True)
         self.commander.stop() 
         rospy.sleep(5)
-        camera_target_trans = self.buf.lookup_transform( 'tag_1', 'camera_link', rospy.Time(0), rospy.Duration(10))
-        world_gripper_trans = self.buf.lookup_transform( 'panda_K', 'panda_link0', rospy.Time(0), rospy.Duration(10))
 
-        camera_target_pose = PoseStamped()
-        camera_target_pose.header.stamp = rospy.Time.now()
-        camera_target_pose.pose.position.x = camera_target_trans.transform.translation.x
-        camera_target_pose.pose.position.y = camera_target_trans.transform.translation.y
-        camera_target_pose.pose.position.z = camera_target_trans.transform.translation.z
-        camera_target_pose.pose.orientation.x = camera_target_trans.transform.rotation.x
-        camera_target_pose.pose.orientation.y = camera_target_trans.transform.rotation.y
-        camera_target_pose.pose.orientation.z = camera_target_trans.transform.rotation.z
-        camera_target_pose.pose.orientation.w = camera_target_trans.transform.rotation.w
+        # extract tag -> camera transformation and gripper -> world
+        # transformation
+        X_TagCamera = self.buf.lookup_transform( 'tag_1', 'camera_link', rospy.Time(0), rospy.Duration(10))
+        X_GripperBase = self.buf.lookup_transform( 'panda_K', 'panda_link0', rospy.Time(0), rospy.Duration(10))
+        # X_TagCamera = self.buf.lookup_transform('camera_link', 'tag_1', rospy.Time(0), rospy.Duration(10))
+        # X_GripperBase = self.buf.lookup_transform('panda_link0', 'panda_K', rospy.Time(0), rospy.Duration(10))
 
-        world_gripper_pose = PoseStamped()
-        world_gripper_pose.header.stamp = rospy.Time.now()
-        world_gripper_pose.pose.position.x = world_gripper_trans.transform.translation.x
-        world_gripper_pose.pose.position.y = world_gripper_trans.transform.translation.y
-        world_gripper_pose.pose.position.z = world_gripper_trans.transform.translation.z
-        world_gripper_pose.pose.orientation.x = world_gripper_trans.transform.rotation.x
-        world_gripper_pose.pose.orientation.y = world_gripper_trans.transform.rotation.y
-        world_gripper_pose.pose.orientation.z = world_gripper_trans.transform.rotation.z
-        world_gripper_pose.pose.orientation.w = world_gripper_trans.transform.rotation.w
+        tag_camera_pose = PoseStamped()
+        tag_camera_pose.header.stamp = rospy.Time.now()
+        tag_camera_pose.pose.position.x = X_TagCamera.transform.translation.x
+        tag_camera_pose.pose.position.y = X_TagCamera.transform.translation.y
+        tag_camera_pose.pose.position.z = X_TagCamera.transform.translation.z
+        tag_camera_pose.pose.orientation.x = X_TagCamera.transform.rotation.x
+        tag_camera_pose.pose.orientation.y = X_TagCamera.transform.rotation.y
+        tag_camera_pose.pose.orientation.z = X_TagCamera.transform.rotation.z
+        tag_camera_pose.pose.orientation.w = X_TagCamera.transform.rotation.w
+
+        gripper_base_pose = PoseStamped()
+        gripper_base_pose.header.stamp = rospy.Time.now()
+        gripper_base_pose.pose.position.x = X_GripperBase.transform.translation.x
+        gripper_base_pose.pose.position.y = X_GripperBase.transform.translation.y
+        gripper_base_pose.pose.position.z = X_GripperBase.transform.translation.z
+        gripper_base_pose.pose.orientation.x = X_GripperBase.transform.rotation.x
+        gripper_base_pose.pose.orientation.y = X_GripperBase.transform.rotation.y
+        gripper_base_pose.pose.orientation.z = X_GripperBase.transform.rotation.z
+        gripper_base_pose.pose.orientation.w = X_GripperBase.transform.rotation.w
 
         calib_msg = calib()
-        calib_msg.camera_target = camera_target_pose
-        calib_msg.base_gripper = world_gripper_pose
+        calib_msg.tag_camera = tag_camera_pose
+        calib_msg.gripper_base = gripper_base_pose
         self.calibPublisher.publish(calib_msg)
         # self.gripperPublisher.publish(world_gripper_pose)
 

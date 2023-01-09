@@ -5,7 +5,7 @@
 		<arg name="image_topic" value="image_raw"/>
 	
 	</include>
-	<node pkg="tf2_ros" type="static_transform_publisher" name="realsense_panda_transform" args="0, 0, 0, 0, 0, 0, 1 panda_link0 camera_link"/>
+	<!-- <node pkg="tf2_ros" type="static_transform_publisher" name="realsense_panda_transform" args="0, 0, 0, 0, 0, 0, 1 panda_link0 camera_link"/> -->
 	<!--node pkg="handeye_calib" type="calibration_trajectory.py" name="calibration_trajectory" output="screen">
 	</node-->
 </launch>

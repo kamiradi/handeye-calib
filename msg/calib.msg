@@ -1,2 +1,2 @@
-geometry_msgs/PoseStamped camera_target
-geometry_msgs/PoseStamped base_gripper
+geometry_msgs/PoseStamped tag_camera
+geometry_msgs/PoseStamped gripper_base
