@@ -19,3 +19,7 @@ In another terminal window run the following script
 ```
 python scripts/calibration.py
 ```
+Now run the `moveit` trajectory
+```
+python scripts/calibration_trajectory.py
+```
