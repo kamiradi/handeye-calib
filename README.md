@@ -15,3 +15,7 @@ Next, run the camera and apriltag nodes necessary for the calibration
 roslaunch handeye_calib camera_for_calib.launch
 ```
 
+In another terminal window run the following script
+```
+python scripts/calibration.py
+```
